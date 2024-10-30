@@ -15,10 +15,13 @@ import java.util.Date;
 public class PenghitunganUmurFrame extends javax.swing.JFrame {
         
     private PenghitunganUmurHelper helper;
+    private volatile boolean stopFetching = false;
+    private Thread peristiwaThread;
     
     /**
      * Creates new form PerhitunganUmurFrame
      */
+    
     public PenghitunganUmurFrame() {
         initComponents();
         helper = new PenghitunganUmurHelper();
@@ -42,19 +45,30 @@ public class PenghitunganUmurFrame extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         txtUmur = new javax.swing.JTextField();
         txtHariUlangTahunBerikutnya = new javax.swing.JTextField();
+        jPanel2 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextArea1 = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Aplikasi Penghitung Umur");
 
+        jPanel1.setBackground(new java.awt.Color(102, 255, 255));
         jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jPanel1.setForeground(new java.awt.Color(255, 255, 255));
         jPanel1.setToolTipText("");
 
+        dateChooserTanggalLahir.setBackground(new java.awt.Color(0, 0, 0));
+        dateChooserTanggalLahir.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        dateChooserTanggalLahir.setForeground(new java.awt.Color(255, 255, 255));
         dateChooserTanggalLahir.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
             public void propertyChange(java.beans.PropertyChangeEvent evt) {
                 dateChooserTanggalLahirPropertyChange(evt);
             }
         });
 
+        btnHitungUmur.setBackground(new java.awt.Color(0, 0, 0));
+        btnHitungUmur.setFont(new java.awt.Font("Tahoma", 3, 14)); // NOI18N
+        btnHitungUmur.setForeground(new java.awt.Color(255, 255, 255));
         btnHitungUmur.setText("Hitung Umur");
         btnHitungUmur.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -62,6 +76,9 @@ public class PenghitunganUmurFrame extends javax.swing.JFrame {
             }
         });
 
+        btnKeluar.setBackground(new java.awt.Color(0, 0, 0));
+        btnKeluar.setFont(new java.awt.Font("Tahoma", 3, 14)); // NOI18N
+        btnKeluar.setForeground(new java.awt.Color(255, 255, 255));
         btnKeluar.setText("Keluar");
         btnKeluar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -69,29 +86,39 @@ public class PenghitunganUmurFrame extends javax.swing.JFrame {
             }
         });
 
+        jLabel1.setFont(new java.awt.Font("Tahoma", 3, 14)); // NOI18N
         jLabel1.setText("Pilih Tanggal Lahir");
 
+        jLabel2.setFont(new java.awt.Font("Tahoma", 3, 14)); // NOI18N
         jLabel2.setText("Umur Anda");
 
+        jLabel3.setFont(new java.awt.Font("Tahoma", 3, 14)); // NOI18N
         jLabel3.setText("Hari Ulang Tahun Brikutnya");
 
+        txtUmur.setBackground(new java.awt.Color(0, 0, 0));
+        txtUmur.setFont(new java.awt.Font("Tahoma", 3, 14)); // NOI18N
+        txtUmur.setForeground(new java.awt.Color(255, 255, 255));
         txtUmur.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtUmurActionPerformed(evt);
             }
         });
 
+        txtHariUlangTahunBerikutnya.setBackground(new java.awt.Color(0, 0, 0));
+        txtHariUlangTahunBerikutnya.setFont(new java.awt.Font("Tahoma", 3, 14)); // NOI18N
+        txtHariUlangTahunBerikutnya.setForeground(new java.awt.Color(255, 255, 255));
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(30, 30, 30)
+                .addGap(8, 8, 8)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jLabel2)
                     .addComponent(jLabel1)
                     .addComponent(jLabel3))
-                .addGap(18, 18, 18)
+                .addGap(40, 40, 40)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(txtUmur)
                     .addGroup(jPanel1Layout.createSequentialGroup()
@@ -101,7 +128,7 @@ public class PenghitunganUmurFrame extends javax.swing.JFrame {
                         .addGap(18, 18, 18)
                         .addComponent(btnKeluar))
                     .addComponent(txtHariUlangTahunBerikutnya))
-                .addContainerGap(30, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -111,8 +138,9 @@ public class PenghitunganUmurFrame extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(btnKeluar)
                         .addComponent(btnHitungUmur))
-                    .addComponent(dateChooserTanggalLahir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addComponent(jLabel1)
+                        .addComponent(dateChooserTanggalLahir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtUmur, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -124,21 +152,47 @@ public class PenghitunganUmurFrame extends javax.swing.JFrame {
                 .addGap(22, 22, 22))
         );
 
+        jPanel2.setBackground(new java.awt.Color(0, 204, 204));
+        jPanel2.setBorder(new javax.swing.border.MatteBorder(null));
+        jPanel2.setToolTipText("");
+
+        jTextArea1.setBackground(new java.awt.Color(102, 255, 255));
+        jTextArea1.setColumns(20);
+        jTextArea1.setFont(new java.awt.Font("Tahoma", 3, 12)); // NOI18N
+        jTextArea1.setRows(5);
+        jTextArea1.setCaretColor(new java.awt.Color(51, 255, 204));
+        jScrollPane1.setViewportView(jTextArea1);
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1)
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 425, Short.MAX_VALUE)
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(246, 246, 246)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(267, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(237, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(255, 255, 255))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(207, 207, 207)
+                .addGap(108, 108, 108)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(365, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(28, Short.MAX_VALUE))
         );
 
         getAccessibleContext().setAccessibleDescription("");
@@ -175,11 +229,45 @@ public class PenghitunganUmurFrame extends javax.swing.JFrame {
     ulangTahunBerikutnya.format(formatter);
             txtHariUlangTahunBerikutnya.setText(hariUlangTahunBerikutnya + ""
                     + "(" + tanggalUlangTahunBerikutnya + ")");
+            
+    // Set stop flag untuk thread sebelumnya
+    stopFetching = true;
+    if (peristiwaThread != null && peristiwaThread.isAlive()) {
+        peristiwaThread.interrupt(); // Beri sinyal ke thread untuk berhenti
+    }
+    
+    // Reset flag untuk thread baru
+    stopFetching = false;
+    
+    // Mendapatkan peristiwa penting secara asinkron
+    peristiwaThread = new Thread(() -> {
+        try {
+            jTextArea1.setText("Tunggu, sedang mengambil data...\n");
+            helper.getPeristiwaBarisPerBaris(ulangTahunBerikutnya,
+    jTextArea1, () -> stopFetching);
+            if (!stopFetching) {
+                javax.swing.SwingUtilities.invokeLater(() ->
+    jTextArea1.append("Selesai mengambil data peristiwa"));
+            }
+        } catch (Exception e) {
+            if (Thread.currentThread().isInterrupted()) {
+                javax.swing.SwingUtilities.invokeLater(() ->
+    jTextArea1.setText("Pengambilan data dibatalkan.\n"));
+            }}
+    });
+    peristiwaThread.start();
         }
         
     }//GEN-LAST:event_btnHitungUmurActionPerformed
 
     private void dateChooserTanggalLahirPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_dateChooserTanggalLahirPropertyChange
+        
+        // Hentikan thread yang sedang berjalan saat tanggal lahir berubah
+            stopFetching = true;
+            if (peristiwaThread != null && peristiwaThread.isAlive()) {
+                peristiwaThread.interrupt();
+            }
+        jTextArea1.setText("");
         txtUmur.setText("");
         txtHariUlangTahunBerikutnya.setText("");
     }//GEN-LAST:event_dateChooserTanggalLahirPropertyChange
@@ -228,6 +316,9 @@ public class PenghitunganUmurFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextField txtHariUlangTahunBerikutnya;
     private javax.swing.JTextField txtUmur;
     // End of variables declaration//GEN-END:variables
