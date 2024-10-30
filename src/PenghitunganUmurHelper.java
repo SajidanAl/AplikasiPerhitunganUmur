@@ -164,5 +164,3 @@ InputStreamReader(conn.getInputStream(), "utf-8"));
 }
 
 }
-
-
